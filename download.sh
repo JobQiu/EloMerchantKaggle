@@ -3,23 +3,20 @@
 DATA_DIR=/content/EloMerchantKaggle/data
 mkdir $DATA_DIR
 pip install kaggle
-# Download SQuAD
-SQUAD_DIR=$DATA_DIR/squad
-mkdir $SQUAD_DIR
-wget https://rajpurkar.github.io/SQuAD-explorer/dataset/train-v1.1.json -O $SQUAD_DIR/train-v1.1.json
-wget https://rajpurkar.github.io/SQuAD-explorer/dataset/dev-v1.1.json -O $SQUAD_DIR/dev-v1.1.json
+
+rm /root/.kaggle/kaggle.json
+
+# download the API credentials
+wget https://raw.githubusercontent.com/JobQiu/EloMerchantKaggle/master/data/kaggle.json -P /root/.kaggle/
+chmod 600 /root/.kaggle/kaggle.json
+#
+
+kaggle competitions download -c elo-merchant-category-recommendation -p /content/EloMerchantKaggle/data
 
 
-# Download CNN and DailyMail
-# Download at: http://cs.nyu.edu/~kcho/DMQA/
-
-
-# Download GloVe
-GLOVE_DIR=$DATA_DIR/glove
-mkdir $GLOVE_DIR
-wget http://nlp.stanford.edu/data/glove.6B.zip -O $GLOVE_DIR/glove.6B.zip
-unzip $GLOVE_DIR/glove.6B.zip -d $GLOVE_DIR
-
-# Download NLTK (for tokenizer)
-# Make sure that nltk is installed!
-python3 -m nltk.downloader -d $HOME/nltk_data punkt
+unzip /content/EloMerchantKaggle/data/historical_transactions.csv.zip -d /content/EloMerchantKaggle/data
+unzip /content/EloMerchantKaggle/data/merchants.csv.zip -d /content/EloMerchantKaggle/data
+unzip /content/EloMerchantKaggle/data/new_merchant_transactions.csv.zip -d /content/EloMerchantKaggle/data
+unzip /content/EloMerchantKaggle/data/sample_submission.csv.zip -d /content/EloMerchantKaggle/data
+unzip /content/EloMerchantKaggle/data/test.csv.zip -d /content/EloMerchantKaggle/data
+unzip /content/EloMerchantKaggle/data/train.csv.zip -d /content/EloMerchantKaggle/data
