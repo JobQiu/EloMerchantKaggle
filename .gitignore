@@ -1,3 +1,12 @@
+historical_transactions.csv
+Data_Dictionary.xlsx
+merchants.csv
+new_merchant_transactions.csv
+sample_submission.csv
+test.csv
+train.csv
+.DS_Store
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
