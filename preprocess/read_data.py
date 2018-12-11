@@ -14,8 +14,13 @@ def read_data(data_dir="/content/EloMerchantKaggle/data"):
     
     """
     
+    print("loading train.csv ..." )
     train_df = pd.read_csv(os.path.join(data_dir, "train.csv"), parse_dates=["first_active_month"])
+    
+    print("loading test.csv ..." )
     test_df = pd.read_csv(os.path.join(data_dir, "test.csv"), parse_dates=["first_active_month"])
+    
+    print("loading historical_transactions.csv ..." )
     hist_df = pd.read_csv(os.path.join(data_dir, "historical_transactions.csv"))
     
     target_col = "target"
@@ -40,6 +45,8 @@ def read_data(data_dir="/content/EloMerchantKaggle/data"):
     bins = np.percentile(train_df["mean_hist_trans"], range(0,101,10))
     train_df['binned_mean_hist_trans'] = pd.cut(train_df['mean_hist_trans'], bins)
 
+
+    print("loading new_merchant_transactions.csv ..." )
     new_trans_df = pd.read_csv(os.path.join(data_dir, "new_merchant_transactions.csv"))
     gdf = new_trans_df.groupby("card_id")
     gdf = gdf["purchase_amount"].size().reset_index()
