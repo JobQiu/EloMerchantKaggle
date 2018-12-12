@@ -84,7 +84,8 @@ class LightGBMBasicModel(Model):
                  read_data_version='1.0',
                  random_state=2018,
                  shuffle=True,
-                 data_dir="/content/EloMerchantKaggle/data"):
+                 data_dir="/content/EloMerchantKaggle/data",
+                 verbose_eval=1000):
         super(LightGBMBasicModel, self).__init__()
 
         self.n_kFold = n_kFold
@@ -97,6 +98,8 @@ class LightGBMBasicModel(Model):
         self.train_X, self.test_X, self.train_y = read_data(data_dir=data_dir,
                                                             version=self.read_data_version)
 
+        self.so_far_best_rmse = 1000
+        self.so_far_best_params = None
         pass
 
     def predict(self):
@@ -120,8 +123,10 @@ class LightGBMBasicModel(Model):
 
             if predict:
                 pred_test += pred_test_tmp
-
-        if eval_score / (1.0 * self.n_kFold) < self.so_far_best_rmse:
+        eval_score = eval_score / (1.0 * self.n_kFold)
+        if eval_score < self.so_far_best_rmse:
+            print("Find better score {}".format(eval_score))
+            send_msg("Find better score {}".format(eval_score))
             self.so_far_best_rmse = pred_test
             self.so_far_best_params = params
 
@@ -139,7 +144,7 @@ class LightGBMBasicModel(Model):
                           1000,
                           valid_sets=[lgval],
                           early_stopping_rounds=100,
-                          verbose_eval=100,
+                          verbose_eval=self.verbose_eval,
                           evals_result=evals_result)
 
         pred_test_y = model.predict(test_X, num_iteration=model.best_iteration)
