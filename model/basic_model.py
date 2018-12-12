@@ -129,7 +129,7 @@ class LightGBMBasicModel(Model):
         if eval_score < self.so_far_best_rmse:
             print("Find better score {}".format(eval_score))
             send_msg("Find better score {}".format(eval_score))
-            self.so_far_best_rmse = pred_test
+            self.so_far_best_rmse = eval_score
             self.so_far_best_params = params
 
         if predict:
