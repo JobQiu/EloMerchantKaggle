@@ -8,6 +8,7 @@ Created on Tue Dec 11 16:32:58 2018
 import os
 import pandas as pd
 import numpy as np
+from preprocess.read_data_congmin import read_data_c
 
 def read_data(data_dir="/content/EloMerchantKaggle/data",
             version = '1.0'):
@@ -26,6 +27,9 @@ def read_data(data_dir="/content/EloMerchantKaggle/data",
 
     print("loading new_merchant_transactions.csv ..." )
     new_trans_df = pd.read_csv(os.path.join(data_dir, "new_merchant_transactions.csv"))
+    
+    if version.startswith('c'):
+        return read_data_c(train_df, test_df, hist_df, new_trans_df, version)
 
     target_col = "target"
 
