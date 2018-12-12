@@ -19,11 +19,7 @@ class Model():
     """
 
     @abstractmethod
-    def __init__(self,
-                 n_kFold=10,
-                 read_data_version='1.0',
-                 random_state=2018,
-                 shuffle=True):
+    def __init__(self):
         """
 
         :param n_kFold:
@@ -85,17 +81,22 @@ class LightGBMBasicModel(Model):
     def __init__(self, n_kFold=10,
                  read_data_version='1.0',
                  random_state=2018,
-                 shuffle=True):
-        super.__init__(self, n_kFold, read_data_version, random_state, shuffle)
+                 shuffle=True,
+                 data_dir="/content/EloMerchantKaggle/data"):
+        super(LightGBMBasicModel, self).__init__()
 
         self.n_kFold = n_kFold
+
         self.read_data_version = read_data_version
         self.random_state = random_state
         self.shuffle = shuffle
 
         # 1. read data
-        self.train_X, self.test_X, self.train_y = read_data(version=self.read_data_version)
+        self.train_X, self.test_X, self.train_y = read_data(data_dir=data_dir,
+                                                            version=self.read_data_version)
+
         pass
+
 
     def predict(self):
         return self._train(self.so_far_best_params)
@@ -123,7 +124,6 @@ class LightGBMBasicModel(Model):
         return pred_test
 
     def run_lgb(self, train_X, train_y, val_X, val_y, test_X, params):
-
         lgtrain = lgb.Dataset(train_X, label=train_y)
         lgval = lgb.Dataset(val_X, label=val_y)
         evals_result = {}
@@ -153,4 +153,10 @@ class LightGBMBasicModel(Model):
         }
         return params
 
-    # %%
+
+# %%
+
+
+if __name__ == "__main__":
+    model = LightGBMBasicModel()
+# %%
