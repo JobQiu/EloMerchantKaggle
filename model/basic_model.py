@@ -11,6 +11,7 @@ from sklearn import model_selection
 from preprocess.read_data import read_data
 import json
 from util.util import send_msg, map_list_combination
+from tqdm import tqdm
 
 
 class Model():
@@ -42,7 +43,8 @@ class Model():
         """
         list_params = map_list_combination(params_list)
 
-        for params in list_params:
+        for params in tqdm(list_params):
+            print("Current Params:{}".format(json.dumps(params)))
             self._train(params)
 
         print("------------- Train done --------------")
@@ -97,29 +99,34 @@ class LightGBMBasicModel(Model):
 
         pass
 
-
     def predict(self):
-        return self._train(self.so_far_best_params)
+        return self._train(self.so_far_best_params, predict=True)
 
-    def _train(self, params=None):
+    def _train(self, params=None, predict=False):
         if params == None:
             params = self.get_params_example()
 
-        pred_test = 0
+        eval_score = 0
+        pred_test = None
+        if predict:
+            pred_test = 0
         kf = model_selection.KFold(n_splits=self.n_kFold, random_state=self.random_state, shuffle=self.shuffle)
         for dev_index, val_index in kf.split(self.train_X):
             dev_X, val_X = self.train_X.loc[dev_index, :], self.train_X.loc[val_index, :]
             dev_y, val_y = self.train_y[dev_index], self.train_y[val_index]
 
             pred_test_tmp, model, evals_result = self.run_lgb(dev_X, dev_y, val_X, val_y, self.test_X, params)
-            send_msg(json.dumps(evals_result))
-            pred_test += pred_test_tmp
+            eval_score += min(evals_result['valid_0']['rmse'])
 
-        if evals_result < self.so_far_best_rmse:
+            if predict:
+                pred_test += pred_test_tmp
+
+        if eval_score / (1.0 * self.n_kFold) < self.so_far_best_rmse:
             self.so_far_best_rmse = pred_test
             self.so_far_best_params = params
 
-        pred_test /= (self.n_kFold * 1.0)
+        if predict:
+            pred_test /= (self.n_kFold * 1.0)
 
         return pred_test
 
