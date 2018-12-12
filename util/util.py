@@ -31,7 +31,7 @@ def send_msg(msg="...",
                   data=json.dumps(post_data))
 
 
-def map_list_combination(map_list):
+def map_list_combination(params_list):
     """
     
     
