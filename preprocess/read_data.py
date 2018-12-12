@@ -25,16 +25,13 @@ def read_data(data_dir="/content/EloMerchantKaggle/data",
 
     print("loading new_merchant_transactions.csv ..." )
     new_trans_df = pd.read_csv(os.path.join(data_dir, "new_merchant_transactions.csv"))
-    
-    if version.startswith('c'):
-        return read_data_c(train_df, test_df, hist_df, new_trans_df, version)
 
     target_col = "target"
 
     train_df_stat, test_df_stat = addStatFeatures(train_df,test_df,hist_df,new_trans_df)
 
     if version != '' and version.strip()[0] == 'c':
-        pass
+        return read_data_c(train_df, test_df, hist_df, new_trans_df, version)
     elif version != '' and version.strip()[0] == 'z':
         # Feature engineering: polynomial features
         poly_features = train_df_stat[['feature_1','feature_2','feature_3']]
