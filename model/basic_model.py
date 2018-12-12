@@ -85,7 +85,8 @@ class LightGBMBasicModel(Model):
                  random_state=2018,
                  shuffle=True,
                  data_dir="/content/EloMerchantKaggle/data",
-                 verbose_eval=1000):
+                 verbose_eval=False,
+                 so_far_best_rmse_threshold=4):
         super(LightGBMBasicModel, self).__init__()
 
         self.n_kFold = n_kFold
@@ -93,12 +94,13 @@ class LightGBMBasicModel(Model):
         self.read_data_version = read_data_version
         self.random_state = random_state
         self.shuffle = shuffle
+        self.verbose_eval = verbose_eval
 
         # 1. read data
         self.train_X, self.test_X, self.train_y = read_data(data_dir=data_dir,
                                                             version=self.read_data_version)
 
-        self.so_far_best_rmse = 1000
+        self.so_far_best_rmse = so_far_best_rmse_threshold
         self.so_far_best_params = None
         pass
 
