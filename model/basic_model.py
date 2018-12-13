@@ -14,7 +14,7 @@ from util.util import send_msg, map_list_combination
 from tqdm import tqdm
 
 
-class Model():
+class Model(object):
     """
     it would be easier for fine-tuning later if all the models following this interface
     """
@@ -96,10 +96,10 @@ class LightGBMBasicModel(Model):
         self.shuffle = shuffle
         self.verbose_eval = verbose_eval
 
-        # 1. read data
         self.train_X, self.test_X, self.train_y = read_data(data_dir=data_dir,
                                                             version=self.read_data_version)
 
+        # during the fine tuning, we will try different combinations, and save the best score and params
         self.so_far_best_rmse = so_far_best_rmse_threshold
         self.so_far_best_params = None
         pass
@@ -115,8 +115,11 @@ class LightGBMBasicModel(Model):
         pred_test = None
         if predict:
             pred_test = 0
+        # 1. k fold
         kf = model_selection.KFold(n_splits=self.n_kFold, random_state=self.random_state, shuffle=self.shuffle)
         for dev_index, val_index in kf.split(self.train_X):
+
+            # 2. train on subset
             dev_X, val_X = self.train_X.loc[dev_index, :], self.train_X.loc[val_index, :]
             dev_y, val_y = self.train_y[dev_index], self.train_y[val_index]
 
@@ -125,6 +128,8 @@ class LightGBMBasicModel(Model):
 
             if predict:
                 pred_test += pred_test_tmp
+
+        # 3. compare scores
         eval_score = eval_score / (1.0 * self.n_kFold)
         if eval_score < self.so_far_best_rmse:
             print("Find better score {}".format(eval_score))
@@ -168,7 +173,16 @@ class LightGBMBasicModel(Model):
         return params
 
 
-# %%
+class XGBoostModel(Model):
+    pass
+
+
+class LGBMModel(Model):
+    pass
+
+
+class CatBoostModel(Model):
+    pass
 
 
 if __name__ == "__main__":

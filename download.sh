@@ -3,6 +3,7 @@
 DATA_DIR=/content/EloMerchantKaggle/data
 mkdir $DATA_DIR
 pip install kaggle
+pip install -U featuretools
 
 rm /root/.kaggle/kaggle.json
 
