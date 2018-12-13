@@ -11,11 +11,85 @@ import gc
 import numpy as np
 import featuretools as ft
 import os
-from util.util import compress_int
+from util.util import compress_int, send_msg
 
 
-def agg(train_df, hist_df, new_trans_df):
-    pass
+class DataSet(object):
+
+    def __init__(self, data_dir='/content/EloMerchantKaggle/data/'):
+        self.data_dir = data_dir
+        self.train_x_path = os.path.join(self.data_dir, 'x_train_agg')
+        self.test_x_path = os.path.join(self.data_dir, 'x_test_agg')
+        self.train_y_path = os.path.join(self.data_dir, 'y_train')
+
+        pass
+
+    def get_train_dataset(self, reset=False, load=True):
+        if load and os.path.isfile(self.train_x_path) and os.path.isfile(self.train_y_path):
+            return pd.read_csv(self.train_x_path), pd.read_csv(self.train_y_path)
+
+        train_df, hist_df_train, new_trans_df_train = split_trans_into_train_test(data_dir=self.data_dir,
+                                                                                  reset=reset)
+
+        return agg(train_df, hist_df_train, new_trans_df_train, True, self.train_x_path, self.train_y_path)
+
+    def get_test_dataset(self, load=True):
+
+        if load and os.path.isfile(self.test_x_path):
+            return pd.read_csv(self.test_x_path), None
+
+        print("loading test.csv ...")
+        d = {'feature_1': np.uint8, 'feature_2': np.uint8, 'feature_3': np.bool_}
+        test_df = pd.read_csv(os.path.join(self.data_dir, "test.csv"), parse_dates=["first_active_month"], dtype=d)
+        test_df.info(memory_usage='deep')
+        hist_df_test = pd.read_csv(os.path.join(self.data_dir, "historical_transactions_test.csv"),
+                                   parse_dates=["purchase_date"])
+        hist_df_test = compress_int(hist_df_test)
+        new_trans_df_test = pd.read_csv(os.path.join(self.data_dir, "new_merchant_transactions_test.csv"),
+                                        parse_dates=["purchase_date"])
+        new_trans_df_test = compress_int(new_trans_df_test)
+        send_msg("load done")
+
+        return agg(test_df, hist_df_test, new_trans_df_test, False, self.test_x_path, None)
+
+
+def agg(train_df, hist_df, new_trans_df, isTrain, x_save_path, y_save_path):
+    train_df = train_df.copy(deep=True)
+    if isTrain:
+        target = train_df['target']
+        del train_df['target']
+    else:
+        target = None
+
+    es_train = ft.EntitySet(id='es_train')
+    es_train = es_train.entity_from_dataframe(entity_id='train', dataframe=train_df,
+                                              index=None, time_index='first_active_month')
+    es_train = es_train.entity_from_dataframe(entity_id='history', dataframe=hist_df,
+                                              index=None, time_index='purchase_date')
+    es_train = es_train.entity_from_dataframe(entity_id='new_trans', dataframe=new_trans_df,
+                                              index=None, time_index='purchase_date')
+    # Relationship between clients and previous loans
+    r_client_previous = ft.Relationship(es_train['train']['card_id'],
+                                        es_train['history']['card_id'])
+
+    # Add the relationship to the entity set
+    es_train = es_train.add_relationship(r_client_previous)
+    r_client_previous = ft.Relationship(es_train['train']['card_id'],
+                                        es_train['new_trans']['card_id'])
+
+    # Add the relationship to the entity set
+    es_train = es_train.add_relationship(r_client_previous)
+    print(" dfs ing ... ")
+    x_train, _ = ft.dfs(entityset=es_train,
+                        target_entity='train',
+                        max_depth=2)
+    send_msg("dfs done! ")
+    print("saving...")
+    x_train.to_csv(x_save_path)
+    if target:
+        target.to_csv(y_save_path)
+
+    return x_train, target
 
 
 def split_trans_into_train_test(data_dir='/content/EloMerchantKaggle/data/', reset=False):
@@ -32,6 +106,7 @@ def split_trans_into_train_test(data_dir='/content/EloMerchantKaggle/data/', res
         new_trans_df_train = pd.read_csv(os.path.join(data_dir, "new_merchant_transactions_train.csv"),
                                          parse_dates=["purchase_date"])
         new_trans_df_train = compress_int(new_trans_df_train)
+        send_msg("load done")
         return train_df, hist_df_train, new_trans_df_train
         pass
 
@@ -72,6 +147,7 @@ def split_trans_into_train_test(data_dir='/content/EloMerchantKaggle/data/', res
     del new_trans_df
     gc.collect()
 
+    send_msg("split and save done")
     return train_df, hist_df_train, new_trans_df_train
 
 
@@ -295,5 +371,4 @@ def read_data_c1(train_df,
                  new_trans_df):
     pass
 
-
-train_df, hist_df_train, new_trans_df_train = split_trans_into_train_test()
+# train_df, hist_df_train, new_trans_df_train = split_trans_into_train_test()

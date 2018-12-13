@@ -22,6 +22,14 @@ def compress_int(df):
     return df
 
 
+def compress_float(df):
+    for col, iii in zip(df.columns, df.dtypes):
+        if (np.issubdtype(iii, np.float)):
+            df[col] = pd.to_numeric(df[col], downcast='float')
+
+    return df
+
+
 def send_msg(msg="...",
              dingding_url="https://oapi.dingtalk.com/robot/send?access_token=774cd9150c43c35e43ec93bc6c91553a5c652417c10fd577bec117ed9f3e3182"
              ):
