@@ -151,7 +151,7 @@ def split_trans_into_train_test(data_dir='/content/EloMerchantKaggle/data/', res
     return train_df, hist_df_train, new_trans_df_train
 
 
-def agg(df_train, df_test, df_hist_trans):
+def agg2(df_train, df_test, df_hist_trans):
     aggs = {}
     for col in ['month', 'hour', 'weekofyear', 'dayofweek', 'year', 'subsector_id', 'merchant_category_id']:
         aggs[col] = ['nunique']
@@ -328,8 +328,8 @@ def read_data_c(train_df,
 
     # 1. [整合成一个data frame] merger them as one df
     print("agg ...")
-    agg(train_df, test_df, hist_df)
-    agg(train_df, test_df, new_trans_df)
+    agg2(train_df, test_df, hist_df)
+    agg2(train_df, test_df, new_trans_df)
 
     del hist_df
     gc.collect()
