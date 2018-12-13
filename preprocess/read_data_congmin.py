@@ -10,6 +10,69 @@ import datetime
 import gc
 import numpy as np
 import featuretools as ft
+import os
+from util.util import compress_int
+
+
+def agg(train_df, hist_df, new_trans_df):
+    pass
+
+
+def split_trans_into_train_test(data_dir='/content/EloMerchantKaggle/data/', reset=False):
+    d = {'feature_1': np.uint8, 'feature_2': np.uint8, 'feature_3': np.bool_}
+    print("loading train.csv ...")
+    train_df = pd.read_csv(os.path.join(data_dir, "train.csv"), parse_dates=["first_active_month"], dtype=d)
+    train_df.info(memory_usage='deep')
+
+    if not reset and os.path.isfile(os.path.join(data_dir, "historical_transactions_train.csv")) and os.path.isfile(
+            os.path.join(data_dir, "new_merchant_transactions_train.csv")):
+        hist_df_train = pd.read_csv(os.path.join(data_dir, "historical_transactions_train.csv"),
+                                    parse_dates=["purchase_date"])
+        hist_df_train = compress_int(hist_df_train)
+        new_trans_df_train = pd.read_csv(os.path.join(data_dir, "new_merchant_transactions_train.csv"),
+                                         parse_dates=["purchase_date"])
+        new_trans_df_train = compress_int(new_trans_df_train)
+        return train_df, hist_df_train, new_trans_df_train
+        pass
+
+    print("loading test.csv ...")
+    test_df = pd.read_csv(os.path.join(data_dir, "test.csv"), parse_dates=["first_active_month"], dtype=d)
+    test_df.info(memory_usage='deep')
+
+    print("loading historical_transactions.csv ...")
+    hist_df = pd.read_csv(os.path.join(data_dir, "historical_transactions.csv"), parse_dates=["purchase_date"])
+    print('    compressing ...')
+    hist_df = compressByDType(hist_df)
+    print('    split to get train hist ...')
+    hist_df_train = hist_df[hist_df.card_id.isin(set(train_df['card_id'].unique()))]
+    print('    saving ... ')
+    hist_df_train.to_csv(os.path.join(data_dir, "historical_transactions_train.csv"))
+    print('    split to get test hist ...')
+    hist_df_test = hist_df[hist_df.card_id.isin(set(test_df['card_id'].unique()))]
+    print('    saving ... ')
+    hist_df_test.to_csv(os.path.join(data_dir, "historical_transactions_test.csv"))
+    del hist_df_test
+    del hist_df
+    gc.collect()
+
+    print("loading new_merchant_transactions.csv ...")
+    new_trans_df = pd.read_csv(os.path.join(data_dir, "new_merchant_transactions.csv"),
+                               parse_dates=["purchase_date"])
+    print('    compressing ...')
+    new_trans_df = compressByDType(new_trans_df)
+    print('    split to get train new trans ...')
+    new_trans_df_train = new_trans_df[new_trans_df.card_id.isin(set(train_df['card_id'].unique()))]
+    print('    saving ... ')
+    new_trans_df_train.to_csv(os.path.join(data_dir, "new_merchant_transactions_train.csv"))
+    print('    split to get test new trans ...')
+    new_trans_df_test = new_trans_df[new_trans_df.card_id.isin(set(test_df['card_id'].unique()))]
+    print('    saving ... ')
+    new_trans_df_test.to_csv(os.path.join(data_dir, "new_merchant_transactions_test.csv"))
+    del new_trans_df_test
+    del new_trans_df
+    gc.collect()
+
+    return train_df, hist_df_train, new_trans_df_train
 
 
 def agg(df_train, df_test, df_hist_trans):
@@ -104,6 +167,8 @@ def compressByDType(df_new_merchant_trans):
     df_new_merchant_trans['hour'] = pd.to_numeric(df_new_merchant_trans['hour'], downcast='integer')
     df_new_merchant_trans['month_diff'] = pd.to_numeric(df_new_merchant_trans['month_diff'], downcast='integer')
 
+    df_new_merchant_trans.info(memory_usage='deep')
+
     return df_new_merchant_trans
 
 
@@ -178,6 +243,7 @@ def read_data_c(train_df,
     print("compressing ... ")
     hist_df = compressByDType(hist_df)
     new_trans_df = compressByDType(new_trans_df)
+    print("compressing done")
     if version == 'c2.0':
         return read_data_c2(train_df,
                             test_df,
@@ -228,3 +294,6 @@ def read_data_c1(train_df,
                  hist_df,
                  new_trans_df):
     pass
+
+
+train_df, hist_df_train, new_trans_df_train = split_trans_into_train_test()
