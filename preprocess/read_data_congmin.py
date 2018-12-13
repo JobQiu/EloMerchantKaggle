@@ -63,11 +63,11 @@ def agg(train_df, hist_df, new_trans_df, isTrain, x_save_path, y_save_path):
 
     es_train = ft.EntitySet(id='es_train')
     es_train = es_train.entity_from_dataframe(entity_id='train', dataframe=train_df,
-                                              index=None, time_index='first_active_month')
+                                              index='', time_index='first_active_month')
     es_train = es_train.entity_from_dataframe(entity_id='history', dataframe=hist_df,
-                                              index=None, time_index='purchase_date')
+                                              index='', time_index='purchase_date')
     es_train = es_train.entity_from_dataframe(entity_id='new_trans', dataframe=new_trans_df,
-                                              index=None, time_index='purchase_date')
+                                              index='', time_index='purchase_date')
     # Relationship between clients and previous loans
     r_client_previous = ft.Relationship(es_train['train']['card_id'],
                                         es_train['history']['card_id'])
@@ -85,9 +85,11 @@ def agg(train_df, hist_df, new_trans_df, isTrain, x_save_path, y_save_path):
                         max_depth=2)
     send_msg("dfs done! ")
     print("saving...")
-    x_train.to_csv(x_save_path)
     if target:
         target.to_csv(y_save_path)
+        x_train['index'] = target.index
+        x_train.set_index('index')
+    x_train.to_csv(x_save_path)
 
     return x_train, target
 
