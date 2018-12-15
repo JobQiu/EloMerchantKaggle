@@ -10,6 +10,24 @@ import requests
 import json
 from collections import deque
 import copy
+import numpy as np
+import pandas as pd
+
+
+def compress_int(df):
+    for col, iii in zip(df.columns, df.dtypes):
+        if (np.issubdtype(iii, np.integer)):
+            df[col] = pd.to_numeric(df[col], downcast='integer')
+
+    return df
+
+
+def compress_float(df):
+    for col, iii in zip(df.columns, df.dtypes):
+        if (np.issubdtype(iii, np.float)):
+            df[col] = pd.to_numeric(df[col], downcast='float')
+
+    return df
 
 
 def send_msg(msg="...",

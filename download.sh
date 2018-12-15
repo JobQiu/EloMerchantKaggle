@@ -3,6 +3,7 @@
 DATA_DIR=/content/EloMerchantKaggle/data
 mkdir $DATA_DIR
 pip install kaggle
+pip install -U featuretools
 
 rm /root/.kaggle/kaggle.json
 
@@ -20,3 +21,4 @@ unzip /content/EloMerchantKaggle/data/new_merchant_transactions.csv.zip -d /cont
 unzip /content/EloMerchantKaggle/data/sample_submission.csv.zip -d /content/EloMerchantKaggle/data
 unzip /content/EloMerchantKaggle/data/test.csv.zip -d /content/EloMerchantKaggle/data
 unzip /content/EloMerchantKaggle/data/train.csv.zip -d /content/EloMerchantKaggle/data
+
